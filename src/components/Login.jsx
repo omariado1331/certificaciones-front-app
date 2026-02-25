@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/Login.css';
 import logo from '../assets/logo.png';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -10,16 +11,19 @@ const Login = () => {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
-    rol: 'funcionario' // valor por defecto 
+    rol: 'funcionario', // valor por defecto 
+    rememberMe: false
   });
+  const[showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
 
   const handleChange = (e) => {
+    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: value
     });
   };
 
@@ -58,13 +62,14 @@ const Login = () => {
       console.log('Rol determinado:', userRol);
       console.log('ID de usuario:', userId);
       console.log('ID de oficina:', oficinaId);
+      console.log('Recordar sesión:', formData.rememberMe);
 
       login({ access, refresh }, { 
         rol: userRol, 
         id: userId, 
         username: formData.username,
         oficinaId: oficinaId || null
-      });
+      }, formData.rememberMe);
       
     } catch (err) {
       setError(err.response?.data?.message || err.response?.data?.detail || 'Error al iniciar sesión');
@@ -96,17 +101,28 @@ const Login = () => {
             />
           </div>
 
-          <div className="form-group">
+          <div className="form-group password-field">
             <label htmlFor="password">Contraseña</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              placeholder="********"
-            />
+            <div className='password-input-wrapper'>
+              <input 
+                type={showPassword ? "text" : "password"}
+                id='password'
+                name='password'
+                value={formData.password}
+                onChange={handleChange}
+                required
+                placeholder='***********' 
+              />
+              
+              <button
+                type='button'
+                className='toggle-password'
+                onClick={ () => setShowPassword(!showPassword)}
+              >
+                <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+              </button>
+
+            </div>
           </div>
 
           <div className="form-group">
@@ -134,6 +150,18 @@ const Login = () => {
                 <span className="rol-label">Administrador</span>
               </label>
             </div>
+          </div>
+
+          <div className='form-group remember-me'>
+            <label className='checkbox-label'>
+              <input 
+               type="checkbox"
+               name='rememberMe'
+               checked={formData.rememberMe}
+               onChange={handleChange} 
+              />
+              <span> Recordar Sesion ?</span>
+            </label>
           </div>
 
           <button 

@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/Dashboard.css';
 import RegistroFuncionarioModal from '../components/RegistroFuncionarioModal'
-import logo from '../assets/sereci.png'; // Ajusta la ruta según donde tengas tu logo
+import CertificadoPreviewModal from '../components/CertificadoPreviewModal'
+import logo from '../assets/sereci.png';
 import axios from 'axios';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const FuncionarioDashboard = () => {
   const { user, logout } = useAuth();
@@ -15,6 +17,29 @@ const FuncionarioDashboard = () => {
 
   const apiUrl = import.meta.env.VITE_API_URL;
 
+  const [certificados, setCertificados] = useState([]);
+  const [certificadosLoading, setCertificadosLoading] = useState(false);
+  const [certificadosError, setCertificadosError] = useState('');
+
+  const [pagination, setPagination] = useState({
+    count: 0,
+    next: null,
+    previous: null,
+    currentPage: 1,
+    pageSize: 10
+  });
+
+  // Estado para el modal de previsualización
+  const [previewModal, setPreviewModal] = useState({
+    isOpen: false,
+    certificadoId: null,
+    previewUrl: null,
+    loading: false
+  });
+
+  // variable para verificar si el funcionario tiene oficina asignada
+  const tieneOficina = user?.oficinaId != null;
+
   const checkIfDataComplete = (data) => {
 
     if (!data) return false;
@@ -25,10 +50,11 @@ const FuncionarioDashboard = () => {
     );
   };
 
+  // Carga de datos del funcionario
   useEffect(() => {
     const fetchFuncionarioData = async () => {
       try {
-        const response = await axios.get(`${apiUrl}/funcionario/me/informacion`);
+        const response = await axios.get(`${apiUrl}/funcionario/me/informacion/`);
         setFuncionarioData(response.data);
 
         // verificacion si los datos estan completos
@@ -46,15 +72,120 @@ const FuncionarioDashboard = () => {
     fetchFuncionarioData();  
   }, []);
 
+  // carga los certificados 
+  useEffect(() => {
+    if (activeSection === 'certificados' && tieneOficina){
+      fetchCertificados(1);
+    }
+  }, [activeSection, tieneOficina]);
+
+  const fetchCertificados = async (page=1) => {
+    setCertificadosLoading(true);
+    setCertificadosError('');
+
+    try {
+      const response = await axios.get(
+        `${apiUrl}/funcionario/me/certificados/?page=${page}&page_size=${pagination.pageSize}`
+      );
+      setCertificados(response.data.results);
+      console.log(certificados);
+      setPagination({
+        count: response.data.count,
+        next: response.data.next,
+        previous: response.data.previous,
+        currentPage: page,
+        pageSize: pagination.pageSize
+      });
+    } catch (err) {
+      setCertificadosError('Error al cargar los certificados');
+      console.error(err);
+    } finally {
+      setCertificadosLoading(false);
+    }
+  };
+
+  const handlePageChange = (newPage) => {
+    fetchCertificados(newPage)
+  };
+
+  const handlePreview = async (certificadoId) => {
+    setPreviewModal({
+      isOpen: true,
+      certificadoId,
+      previewUrl: null,
+      loading: true
+    });
+
+    try {
+      const response = await axios.get(
+        `${apiUrl}/certificados-descendencia/${certificadoId}/preview/`
+      );
+
+      setPreviewModal({
+        isOpen: true,
+        certificadoId,
+        previewUrl: response.data.preview_url,
+        loading: false,
+        expiresIn: response.data.expires_in
+      });
+
+
+
+    } catch (err) {
+      console.error('error al abrir el certificado:', err);
+      setPreviewModal({
+        isOpen: false,
+        certificadoId: null,
+        previewUrl: null,
+        loading: false
+      });
+      alert('error al cargar el certificado');
+    }
+  };
+
+  const closePreviewModal = () => {
+    setPreviewModal({
+      isOpen: false,
+      certificadoId: null,
+      previewUrl: null,
+      loading: false
+    });
+  };
+
+
   const handleDataSuccess = async () => {
     setShowModal(false);
     // recargar con los datos actualizados
     try {
-      const response = await axios.get(`${apiUrl}/funcionario/me/informacion`);
+      const response = await axios.get(`${apiUrl}/funcionario/me/informacion/`);
       setFuncionarioData(response.data);
     } catch (err) {
       console.error('error al cargar los datos: ', err)
     }
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-BO', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const renderEstadoBadge = (estado) => {
+    const estadoLower = estado?.toLowerCase();
+    let className = 'badge';
+
+    if (estadoLower === 'vigente'){
+      className += ' active';
+    } else if (estadoLower === 'expirado') {
+      className += ' cancelled'
+    }
+
+    return <span className={className}>{estado}</span>
   };
 
   const renderContent = () => {
@@ -130,29 +261,115 @@ const FuncionarioDashboard = () => {
         );
       
       case 'certificados':
+        if (!tieneOficina) {
+          return (
+            <div className="content-section access-denied">
+              <div className="access-denied-icon">🚫</div>
+              <h2>Acceso Restringido</h2>
+              <p>No tienes una oficina asignada. No puedes acceder a la sección de certificados.</p>
+              <p className="access-denied-hint">Contacta al administrador para que te asigne una oficina.</p>
+            </div>
+          );
+        }
         return (
-          <div className="content-section">
-            <h2>Certificados de Ascendencia</h2>
-            <div className="certificados-grid">
-              <div className="certificado-card">
-                <h3>Certificado de Ascendencia #001</h3>
-                <p>Fecha de emisión: 23/02/2026</p>
-                <p>Estado: <span className="badge active">Vigente</span></p>
-                <button className="action-button">Ver Detalles</button>
-              </div>
-              <div className="certificado-card">
-                <h3>Certificado de Ascendencia #002</h3>
-                <p>Fecha de emisión: 22/02/2026</p>
-                <p>Estado: <span className="badge active">Vigente</span></p>
-                <button className="action-button">Ver Detalles</button>
-              </div>
-              <div className="certificado-card">
-                <h3>Certificado de Ascendencia #003</h3>
-                <p>Fecha de emisión: 21/02/2026</p>
-                <p>Estado: <span className="badge pending">En Proceso</span></p>
-                <button className="action-button">Ver Detalles</button>
+          <div className="content-section certificados-section">
+            <div className="certificados-header">
+              <h2>Certificados Emitidos</h2>
+              <div className="certificado-stats">
+                Total: <strong>{pagination.count}</strong> certificados
               </div>
             </div>
+
+            {certificadosError && (
+              <div className="error-message">
+                {certificadosError}
+              </div>
+            )}
+
+            {certificadosLoading ? (
+              <div className="loading-section">
+                <div className="loading-spinner">
+                  <p>Cargando Certificados...</p>
+                </div>
+              </div>
+            ) : (
+              <> 
+                <div className="table-responsive">
+                  <table className="certificados-table">
+                    <thead>
+                      <tr>
+                        <th>Correlativo</th>
+                        <th>CI Solicitante</th>
+                        <th>Nombres Solicitante</th>
+                        <th>Estado</th>
+                        <th>Oficina</th>
+                        <th>Fecha de Emision</th>
+                        <th>Previsualizacion</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {certificados.length > 0 ? (
+                        certificados.map((cert) => (
+                          <tr key={cert.id}>
+                            <td>
+                              <span className='cert-numero'>{cert.numero_certificado}</span>
+                            </td>
+                            <td>{cert.ci_solicitante}</td>
+                            <td>{cert.nombres_solicitante}</td>
+                            <td>{renderEstadoBadge(cert.estado_certificado)}</td>
+                            <td>{cert.nombre_oficina}</td>
+                            <td>{formatDate(cert.fecha_emision)}</td>
+                            <td>
+                              <button 
+                                className='action-button preview-btn'
+                                onClick={() => handlePreview(cert.id)}
+                                title='Previsualizar certificado'>
+                                <i className='fa fa-file-text'></i>
+                                Ver PDF
+                              </button>
+                            </td>
+                          </tr>
+                        )
+                      )
+                    ) : (
+                      <tr>
+                        <td colSpan="8" className='empty-table'>
+                          No hay certificados emitidos
+                        </td>
+                      </tr>
+                    )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* PAGINACION */}
+                {pagination.count>0 && (
+                  <div className="pagination">
+                    <button 
+                      className='pagination-button'
+                      onClick={() => handlePageChange(pagination.currentPage - 1)}
+                      disabled={!pagination.previous}
+                    >
+                      &larr; Anterior
+                    </button>
+
+                    <span className='pagination-info'>
+                      Pagina {pagination.currentPage} de {Math.ceil(pagination.count / pagination.pageSize)}
+                    </span>
+
+                    <button
+                      className='pagination-button'
+                      onClick={() => handlePageChange(pagination.currentPage + 1)}
+                      disabled={!pagination.next}
+                    >
+                      Siguiente &rarr;
+                    </button>
+
+                  </div>
+                )}
+              </>
+            )
+            }
           </div>
         );
       
@@ -240,6 +457,14 @@ const FuncionarioDashboard = () => {
         onClose={ () => setShowModal(false) }
         onSuccess={handleDataSuccess}
         user={user}
+      />
+
+      <CertificadoPreviewModal
+        isOpen={previewModal.isOpen}
+        onClose={closePreviewModal}
+        previewUrl={previewModal.previewUrl}
+        loading={previewModal.loading}
+        certificadoId={previewModal.certificadoId}
       />
 
     </div>

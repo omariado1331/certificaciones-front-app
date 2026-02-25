@@ -28,7 +28,7 @@ const RegistroFuncionarioModal = ({ isOpen, onClose, onSuccess, user }) => {
     setError('');
 
     try {
-      await axios.put(`${apiUrl}/funcionario/me`, formData);
+      await axios.put(`${apiUrl}/funcionario/me/`, formData);
       onSuccess();
     } catch (err) {
       setError(err.response?.data?.message || 'Error al guardar los datos');

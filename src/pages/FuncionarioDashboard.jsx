@@ -1,13 +1,84 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/Dashboard.css';
-import logo from '../assets/logo.png'; // Ajusta la ruta según donde tengas tu logo
+import RegistroFuncionarioModal from '../components/RegistroFuncionarioModal'
+import logo from '../assets/sereci.png'; // Ajusta la ruta según donde tengas tu logo
+import axios from 'axios';
 
 const FuncionarioDashboard = () => {
   const { user, logout } = useAuth();
   const [activeSection, setActiveSection] = useState('info'); // info, certificados, oficinas
+  const [funcionarioData, setFuncionarioData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [error, setError] = useState('');
+
+  const apiUrl = import.meta.env.VITE_API_URL;
+
+  const checkIfDataComplete = (data) => {
+
+    if (!data) return false;
+
+    // verificacion de los campos de informacion del funcionario
+    return !(
+      data.nombres === null && data.ci === null && (data.apellido_paterno === null || data.apellido_materno === null)
+    );
+  };
+
+  useEffect(() => {
+    const fetchFuncionarioData = async () => {
+      try {
+        const response = await axios.get(`${apiUrl}/funcionario/me/informacion`);
+        setFuncionarioData(response.data);
+
+        // verificacion si los datos estan completos
+        const isComplete = checkIfDataComplete(response.data);
+        if (!isComplete) {
+          setShowModal(true);
+        }
+      } catch (err) {
+        setError('Error al cargar los datos del funcionario');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFuncionarioData();  
+  }, []);
+
+  const handleDataSuccess = async () => {
+    setShowModal(false);
+    // recargar con los datos actualizados
+    try {
+      const response = await axios.get(`${apiUrl}/funcionario/me/informacion`);
+      setFuncionarioData(response.data);
+    } catch (err) {
+      console.error('error al cargar los datos: ', err)
+    }
+  };
 
   const renderContent = () => {
+
+    if (loading) {
+      return (
+        <div className='content-section loading-section'>
+          <div className='loading-spinner'></div>
+          <p>Cargando Informacion...</p>
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className='content-section error-section'>
+          <p className='error-text'>{error}</p>
+          <button onClick={ () => window.location.reload() } className='btn-primary'>
+            Reintentar
+          </button>
+        </div>
+      )
+    }
+
     switch(activeSection) {
       case 'info':
         return (
@@ -18,20 +89,42 @@ const FuncionarioDashboard = () => {
                 <label>Nombre de Usuario:</label>
                 <span>{user?.username}</span>
               </div>
+
+              {/* Datos personales */}
               <div className="info-item">
-                <label>ID Funcionario:</label>
-                <span>{user?.id}</span>
+                <label>Nombres:</label>
+                <span>{funcionarioData?.nombres || '-' }</span>
               </div>
+
               <div className="info-item">
-                <label>Rol:</label>
-                <span className="rol-badge">Funcionario</span>
+                <label>Apelido Paterno:</label>
+                <span>{funcionarioData?.apellido_paterno || '-' }</span>
               </div>
-              {user?.oficinaId && (
-                <div className="info-item">
-                  <label>ID Oficina:</label>
-                  <span>{user.oficinaId}</span>
-                </div>
-              )}
+
+              <div className="info-item">
+                <label>Apelido Materno:</label>
+                <span>{funcionarioData?.apellido_materno || '-' }</span>
+              </div>
+
+              <div className="info-item">
+                <label>Carnet de Identidad:</label>
+                <span>{funcionarioData?.ci || '-' }</span>
+              </div>
+
+              <div className="info-item">
+                <label>Telefono:</label>
+                <span>{funcionarioData?.telefono || '-' }</span>
+              </div>
+
+              <div className="info-item">
+                <label>Oficina:</label>
+                <span>{funcionarioData?.oficina_nombre  || 'No asignada' }</span>
+              </div>
+
+              <div className="info-item">
+                <label>Dirección Oficina:</label>
+                <span>{funcionarioData?.oficina_direccion || '—'}</span>
+              </div>
             </div>
           </div>
         );
@@ -103,7 +196,7 @@ const FuncionarioDashboard = () => {
       <nav className="navbar">
         <div className="navbar-left">
           <img src={logo} alt="Logo SERECI" className="navbar-logo" />
-          <span className="navbar-title">CERTIFICACIONES SERECI</span>
+          {/* <span className="navbar-title">CERTIFICACIONES SERECI</span> */}
         </div>
         
         <div className="navbar-center">
@@ -129,7 +222,7 @@ const FuncionarioDashboard = () => {
 
         <div className="navbar-right">
           <span className="user-info">
-            {user?.username} ({user?.rol})
+            {user?.username}
           </span>
           <button onClick={logout} className="logout-button">
             Cerrar Sesión
@@ -140,6 +233,15 @@ const FuncionarioDashboard = () => {
       <main className="dashboard-content">
         {renderContent()}
       </main>
+
+      {/* modal para completar los datos */}
+      <RegistroFuncionarioModal
+        isOpen={showModal}
+        onClose={ () => setShowModal(false) }
+        onSuccess={handleDataSuccess}
+        user={user}
+      />
+
     </div>
   );
 };

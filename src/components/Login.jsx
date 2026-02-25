@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/Login.css';
-import logo from '../assets/logo.png';
+import logo from '../assets/sereci.png';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const apiUrl = import.meta.env.VITE_API_URL;
@@ -11,7 +11,7 @@ const Login = () => {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
-    rol: 'funcionario', // valor por defecto 
+    rol: 'funcionario', // por defecto
     rememberMe: false
   });
   const[showPassword, setShowPassword] = useState(false);
@@ -37,7 +37,6 @@ const Login = () => {
       const response = await axios.post(`${apiUrl}/login/`, {
         username: formData.username,
         password: formData.password,
-        rol: formData.rol
       });
       
       const { access, refresh } = response.data;

@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import '../styles/Dashboard.css';
 import RegistroFuncionarioModal from '../components/RegistroFuncionarioModal'
 import CertificadoPreviewModal from '../components/CertificadoPreviewModal'
+import NuevoCertificadoAscendenciaModal from '../components/NuevoCertificadoAscendenciaModal';
 import logo from '../assets/sereci.png';
 import axios from 'axios';
 import '@fortawesome/fontawesome-free/css/all.min.css';
@@ -36,6 +37,15 @@ const FuncionarioDashboard = () => {
     previewUrl: null,
     loading: false
   });
+
+  // estado para el modal de nuevo certificado
+  const [nuevoCertificadoAscendenciaModal, setnuevoCertificadoAscendenciaModal] = useState (false);
+
+  // recargar cuando se agregue un nuevo certificado
+  const handleNuevoCertificadoAscendenciaSuccess = () => {
+    // Recargar la lista de certificados después de crear uno nuevo
+    fetchCertificados(pagination.currentPage);
+  };
 
   // variable para verificar si el funcionario tiene oficina asignada
   const tieneOficina = user?.oficinaId != null;
@@ -275,8 +285,17 @@ const FuncionarioDashboard = () => {
           <div className="content-section certificados-section">
             <div className="certificados-header">
               <h2>Certificados Emitidos</h2>
-              <div className="certificado-stats">
-                Total: <strong>{pagination.count}</strong> certificados
+              <div className="header-actions">
+                <button 
+                  className="btn-nuevo-certificado"
+                  onClick={() => setnuevoCertificadoAscendenciaModal(true)}
+                >
+                  <i className="fas fa-plus"></i>
+                  Nuevo Certificado
+                </button>
+                <div className="certificado-stats">
+                  Total: <strong>{pagination.count}</strong> certificados
+                </div>
               </div>
             </div>
 
@@ -465,6 +484,13 @@ const FuncionarioDashboard = () => {
         previewUrl={previewModal.previewUrl}
         loading={previewModal.loading}
         certificadoId={previewModal.certificadoId}
+      />
+
+      <NuevoCertificadoAscendenciaModal 
+        isOpen={nuevoCertificadoAscendenciaModal}
+        onClose={() => setnuevoCertificadoAscendenciaModal(false)}
+        onSuccess={handleNuevoCertificadoAscendenciaSuccess}
+        user={user}
       />
 
     </div>

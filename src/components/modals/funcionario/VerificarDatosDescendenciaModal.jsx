@@ -33,7 +33,7 @@ const VerificarDatosDescendenciaModal = ({ isOpen, onClose, onConfirm, data, onB
               </div>
               <div className="data-item full-width">
                 <span className="data-label">Texto Adicional:</span>
-                <span className="data-value">{data.texto_adicional || '-'}</span>
+                <span className="data-value">{data.texto_certificado || '-'}</span>
               </div>
             </div>
           </section>

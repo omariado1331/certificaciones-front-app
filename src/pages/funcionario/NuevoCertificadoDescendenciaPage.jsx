@@ -9,7 +9,6 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
 const NuevoCertificadoDescendenciaPage = () => {
     const navigate = useNavigate();
-    const user = useAuth();
 
     const [formData, setFormData] = useState({
         ci_solicitante: '',
@@ -30,7 +29,7 @@ const NuevoCertificadoDescendenciaPage = () => {
     const [datosProgenitor, setDatosProgenitor] = useState({
         nombres: '',
         primer_apellido: '',
-        segundo_apellido: ''
+        segundo_apellido: '',
     });
 
     const handleInputChange = (e) => {
@@ -43,6 +42,17 @@ const NuevoCertificadoDescendenciaPage = () => {
 
     const handleTextChange = (e) => {
         setTextoProcesar(e.target.value);
+    };
+
+    const formatFecha = (fecha) => {
+        if (!fecha) return null;
+
+        if (fecha.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            return fecha;
+        }
+
+        const [dia, mes, anio] = fecha.split('/');
+        return `${anio}-${mes}-${dia}`;
     };
     
     // funcion para procesar el texto de la consulta al sistema Rubio
@@ -209,9 +219,9 @@ const NuevoCertificadoDescendenciaPage = () => {
                     oficialia: d.oficialia,
                     libro: d.libro,
                     partida: d.partida,
-                    fecha_inscripcion: d.fecha_inscripcion,
+                    fecha_inscripcion: formatFecha(d.fecha_inscripcion),
                     sexo: d.sexo,
-                    fecha_nacimiento: d.fecha_nacimiento,
+                    fecha_nacimiento: formatFecha(d.fecha_nacimiento),
                     nombres_padre: d.nombres_padre,
                     primer_apellido_padre: d.primer_apellido_padre,
                     segundo_apellido_padre: d.segundo_apellido_padre,
@@ -280,9 +290,11 @@ const NuevoCertificadoDescendenciaPage = () => {
 
     // funcion para abrir el modal de verificacion de datos
     const handleVerificarDatos = () => {
-        const ciSolicitante = document.getElementById('ci_solicitante')?.value;
-        const nombresSolicitante = document.getElementById('nombres_solicitante')?.value;
+        const ciSolicitante = formData.ci_solicitante;
+        const nombresSolicitante = formData.nombres_solicitante;
 
+        console.log(ciSolicitante);
+        console.log(nombresSolicitante);
         if (!(ciSolicitante && nombresSolicitante)){
             alert('LOS CAMPOS DE CARNET SOLICITANTE Y NOMBRES DE SOLICITANTE SON REQUERIDOS')
             return;
@@ -295,10 +307,10 @@ const NuevoCertificadoDescendenciaPage = () => {
     };
 
     const makeDataCertificado = () => {
-        const ciSolicitante = document.getElementById('ci_solicitante')?.value || '';
-        const nombresSolicitante = document.getElementById('nombres_solicitante')?.value || '';
-        const correlativoFormulario = document.getElementById('correlativo')?.value || '';
-        const textoAdicional = document.getElementById('texto_adicional')?.value || '';
+        const ciSolicitante = formData.ci_solicitante || '';
+        const nombresSolicitante = formData.nombres_solicitante || '';
+        const correlativoFormulario = formData.correlativo || '';
+        const textoAdicional = formData.texto_adicional || '';
 
         const descendientesSeleccionados = descendientes.filter((_, index) => 
             selectedRows.includes(index)
@@ -309,7 +321,7 @@ const NuevoCertificadoDescendenciaPage = () => {
             ci_solicitante: ciSolicitante,
             nombres_solicitante: nombresSolicitante,
             correlativo_formulario: correlativoFormulario,
-            texto_adicional: textoAdicional,
+            texto_certificado: textoAdicional,
 
             // datos del progenitor
             nombres_progenitor: datosProgenitor.nombres,
@@ -335,8 +347,12 @@ const NuevoCertificadoDescendenciaPage = () => {
 
     const handleConfirmarCreacion = async () =>{
         try {
-            // aqui peticion axios
-            console.log(JSON.stringify(datosVerificar, null, 2));
+            const response = await axios.post(`${apiUrl}/certificados-descendencia/`, datosVerificar)
+
+            if (!response) {
+                alert('no se creo el certificado');
+                return;
+            }
 
             setVerificarModalOpen(false);
 
@@ -344,10 +360,14 @@ const NuevoCertificadoDescendenciaPage = () => {
             setTextoProcesar('');
             setDescendientes([]);
             setSelectedRows([]);
-            setDatosProgenitor(null);
+            setDatosProgenitor({
+                nombres: '',
+                primer_apellido: '',
+                segundo_apellido: '',
+            });
 
-            alert('CREADO EXITOSAMENTE');
-
+            alert('CREADO EXITOSAMENTE \n SE PROCEDERA CON LA DESCARGA DEL CERTIFICADO');
+            navigate('/funcionario/certificados');
 
         } catch (err) {
             console.error('ERROR AL CREAR CERTIFICADO', err);
@@ -458,10 +478,10 @@ const NuevoCertificadoDescendenciaPage = () => {
 
                 {/* TABLA DE DESCENDIENTES */}
                 <div className="tabla-descendientes-container">
-                    <div className="table-header">
+                    <div className="tabla-header">
                         <h3>Descendientes {descendientes.length > 0 && `(${descendientes.length})`}</h3>
                         { descendientes.length > 0 && (
-                            <div className="table-actions">
+                            <div className="tabla-actions">
                                 <span className="selected-count">
                                     {selectedRows.length} seleccionados
                                 </span>
@@ -571,7 +591,7 @@ const NuevoCertificadoDescendenciaPage = () => {
                 isOpen={verificarModalOpen}
                 onClose={ () => setVerificarModalOpen(false) }
                 onConfirm={handleConfirmarCreacion}
-                onBack={ () => setVerificarModalOpen(false)}
+                onBack={ handleVolver }
                 data={datosVerificar}
             />
         </div>

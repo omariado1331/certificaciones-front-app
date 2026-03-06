@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import PropTypes from 'prop-types';
 import axios from 'axios';
-import '../styles/CertificadoPreviewModal.css';
+import '../../styles/modals/CertificadoPreviewModal.css';
 
 const CertificadoPreviewModal = ({ isOpen, onClose, previewUrl, loading, certificadoId }) => {
   const [pdfContent, setPdfContent] = useState(null);
@@ -88,14 +87,6 @@ const CertificadoPreviewModal = ({ isOpen, onClose, previewUrl, loading, certifi
       </div>
     </div>
   );
-};
-
-CertificadoPreviewModal.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  previewUrl: PropTypes.string,
-  loading: PropTypes.bool,
-  certificadoId: PropTypes.number
 };
 
 export default CertificadoPreviewModal;

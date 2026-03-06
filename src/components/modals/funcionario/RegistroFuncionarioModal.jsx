@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import '../styles/RegistroFuncionarioModal.css';
+import '../../../styles/modals/RegistroFuncionarioModal.css';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 

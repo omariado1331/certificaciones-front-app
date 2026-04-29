@@ -13,6 +13,7 @@ const CertificadosPage = () => {
     const navigate = useNavigate();
     const [certificados, setCertificados] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
     const [pagination, setPagination] = useState({
         count: 0,
         next: null,
@@ -43,26 +44,26 @@ const CertificadosPage = () => {
         });
 
         try {
-        const response = await axios.get(
-            `${apiUrl}/certificados-descendencia/${certificadoId}/preview/`
-        );
+            const response = await axios.get(
+                `${apiUrl}/certificados-descendencia/${certificadoId}/preview/`
+            );
 
-        setPreviewModal({
-            isOpen: true,
-            certificadoId,
-            previewUrl: response.data.preview_url,
-            loading: false,
-            expiresIn: response.data.expires_in
-        });
+            setPreviewModal({
+                isOpen: true,
+                certificadoId,
+                previewUrl: response.data.preview_url,
+                loading: false,
+                expiresIn: response.data.expires_in
+            });
         } catch (err) {
-        console.error('error al abrir el certificado:', err);
-        setPreviewModal({
-            isOpen: false,
-            certificadoId: null,
-            previewUrl: null,
-            loading: false
-        });
-        alert('error al cargar el certificado');
+            console.error('error al abrir el certificado:', err);
+            setPreviewModal({
+                isOpen: false,
+                certificadoId: null,
+                previewUrl: null,
+                loading: false
+            });
+            alert('error al cargar el certificado');
         }
     };
 
@@ -120,6 +121,7 @@ const CertificadosPage = () => {
                 pageSize: pagination.pageSize
             });
         } catch (err) {
+            setError('ERROR AL CARGAR LOS CERTIFICADOS \n VUELVA A INICIAR SESION');
             console.error('error al cargar los certificados', err)
         } finally {
             setLoading(false);
@@ -135,6 +137,24 @@ const CertificadosPage = () => {
                 <p>Contacte con el administrador para la asignacion de una oficina</p>
             </div>
         )
+    }   
+
+    if (loading) {
+        return (
+        <div className="loading-section">
+            <div className="loading-spinner"></div>    
+            Cargando...
+        </div>
+        )
+    }
+
+    if (error) {
+      return (
+        <div className="error section">
+          <i className="fas fa-exclamation-triangle"></i>
+          <p className="error-text">{error}</p>
+        </div>
+      )
     }
 
     return(
@@ -228,8 +248,7 @@ const CertificadosPage = () => {
                     </button>
 
                 </div>
-            )};
-
+            )}
             <CertificadoPreviewModal
                 isOpen={previewModal.isOpen}
                 onClose={ closePreviewModal }

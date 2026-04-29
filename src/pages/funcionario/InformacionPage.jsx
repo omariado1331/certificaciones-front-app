@@ -31,7 +31,7 @@ const InformacionPage = () => {
                     setShowModal(true);
                 }
             } catch (err) {
-                setError('ERROR AL CARGAR LOS DATOS');
+                setError('ERROR AL CARGAR LOS DATOS \n VUELVA A INICIAR SESION');
                 console.error('error', err)
             } finally {
                 setLoading(false);
@@ -49,7 +49,22 @@ const InformacionPage = () => {
 
 
     if (loading) {
-        return <div className="loading-section">Cargando...</div>
+        return( 
+          <div className="loading-section">
+            <div className="loading-spinner"></div>
+            Cargando...
+          </div>
+
+        )
+    }
+
+    if (error) {
+      return (
+        <div className="error section">
+          <i className="fas fa-exclamation-triangle"/>
+          <p className="error-text">{error}</p>
+        </div>
+      )
     }
 
     return (

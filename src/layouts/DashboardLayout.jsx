@@ -14,8 +14,8 @@ const DashboardLayout = () => {
   };
 
   const navItems = [
-    { path: 'informacion', label: 'Información del Funcionario', icon: 'fas fa-user' },
-    { path: 'certificados', label: 'Certificados Descendencia', icon: 'fas fa-file-pdf' },
+    { path: 'informacion', label: 'Información', icon: 'fas fa-user' },
+    { path: 'certificados', label: 'Certificados', icon: 'fas fa-file-pdf' },
     { path: 'oficinas', label: 'Oficinas', icon: 'fas fa-building' }
   ];
 

@@ -396,10 +396,10 @@ const NuevoCertificadoDescendenciaPage = () => {
 
                     {/* Columna izquierda */}
                     <div className="left-column">
-                        <h3>Datos del Solicitante</h3>
+                        <h3>DATOS DEL SOLICITANTE</h3>
 
                         <div className="form-group">
-                            <label>CI Solicitante</label>
+                            <label>CI SOLICITANTE</label>
                             <input 
                                 type="text" 
                                 name="ci_solicitante"
@@ -410,7 +410,7 @@ const NuevoCertificadoDescendenciaPage = () => {
                         </div>
                         
                         <div className="form-group">
-                            <label>Nombres del Solicitante</label>
+                            <label>NOMBRES SOLICITANTE</label>
                             <input 
                                 type="text"
                                 name="nombres_solicitante"
@@ -432,7 +432,7 @@ const NuevoCertificadoDescendenciaPage = () => {
                         </div>
 
                         <div className="form-group">
-                            <label>TEXTO ADICIONAL</label>
+                            <label>TEXTO FORMULARIO</label>
                             <textarea
                                 name="texto_adicional"
                                 value={formData.texto_adicional}
@@ -445,10 +445,10 @@ const NuevoCertificadoDescendenciaPage = () => {
 
                     {/* Columna derecha */}
                     <div className="right-column">
-                        <h3>Procesar Texto (Sistema Rubio)</h3>
+                        <h3>PROCESAR TEXTO (Sistema Rubio)</h3>
                         
                         <div className="form-group">
-                            <label>Copie aquí el texto del Rubio</label>
+                            <label>Copie aquí el texto</label>
                             <textarea
                                 className="texto-procesar-area"
                                 value={textoProcesar}

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const AuthContext = createContext();
+const apiUrl = import.meta.env.VITE_API_URL;
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -100,7 +101,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+
+    // registrar el cierre de sesion en la base de datos
+    try {
+      const response = await axios.post(`${apiUrl}/logout/`, {} );
+      console.log(response.message)
+    } catch (err) {
+      console.log('Error al cerrar sesion', err)
+    }
+
     // limpiar el sessionStorage
     sessionStorage.removeItem('session');
 

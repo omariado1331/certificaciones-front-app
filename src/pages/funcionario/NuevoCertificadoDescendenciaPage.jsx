@@ -14,6 +14,7 @@ const NuevoCertificadoDescendenciaPage = () => {
         ci_solicitante: '',
         nombres_solicitante: '',
         correlativo: '',
+        valorada: '',
         texto_adicional: ''
     });
 
@@ -310,6 +311,7 @@ const NuevoCertificadoDescendenciaPage = () => {
         const ciSolicitante = formData.ci_solicitante || '';
         const nombresSolicitante = formData.nombres_solicitante || '';
         const correlativoFormulario = formData.correlativo || '';
+        const valorada = formData.valorada || '';
         const textoAdicional = formData.texto_adicional || '';
 
         const descendientesSeleccionados = descendientes.filter((_, index) => 
@@ -321,6 +323,7 @@ const NuevoCertificadoDescendenciaPage = () => {
             ci_solicitante: ciSolicitante,
             nombres_solicitante: nombresSolicitante,
             correlativo_formulario: correlativoFormulario,
+            valorada: valorada,
             texto_certificado: textoAdicional,
 
             // datos del progenitor
@@ -432,7 +435,18 @@ const NuevoCertificadoDescendenciaPage = () => {
                         </div>
 
                         <div className="form-group">
-                            <label>TEXTO FORMULARIO</label>
+                            <label>NUMERO PAPELETA VALORADA</label>
+                            <input
+                                type="text"
+                                name="valorada"
+                                value={formData.valorada}
+                                onChange={handleInputChange}
+                                placeholder="N° de papeleta valorada"
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label>OBSERVACIONES</label>
                             <textarea
                                 name="texto_adicional"
                                 value={formData.texto_adicional}

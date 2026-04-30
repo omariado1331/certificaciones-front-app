@@ -51,7 +51,7 @@ function AppRoutes() {
         <Route path='informacion' element={< InformacionPage />}/>
         <Route path='certificados' element={< CertificadosPage />}/>
         <Route path='oficinas' element={< OficinasPage />}/>
-        <Route path='certificados/nuevo' element={ <NuevoCertificadoDesdendenciaPage /> }/>
+        <Route path='certificados/nuevo-certificado-descendencia' element={ <NuevoCertificadoDesdendenciaPage /> }/>
 
       </Route>
     </Routes>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import TipoCertificadoModal from "../../components/modals/funcionario/TipoCertificadoModal";
 import CertificadoPreviewModal from "../../components/modals/CertificadoPreviewModal";
 import '../../styles/funcionario/CertificadosPage.css'
 
@@ -21,6 +22,7 @@ const CertificadosPage = () => {
         currentPage: 1,
         pageSize: 10
     });
+    const [showTipoCertificadoModal, setShowTipoCertificadoModal] = useState(false);
 
     const handlePageChange = (newPage) => {
         fetchCertificados(newPage)
@@ -165,7 +167,7 @@ const CertificadosPage = () => {
                 <h2>Certificados emitidos</h2>
                 <button
                     className="btn-nuevo-certificado"
-                    onClick={() => navigate('/funcionario/certificados/nuevo/')}
+                    onClick={() => setShowTipoCertificadoModal(true)}
                 >
                     <i className="fas fa-plus"/>
                     Nuevo Certificado
@@ -255,6 +257,10 @@ const CertificadosPage = () => {
                 previewUrl={previewModal.previewUrl}
                 loading={previewModal.loading}
                 certificadoId={previewModal.certificadoId}
+            />
+            <TipoCertificadoModal
+                isOpen={showTipoCertificadoModal}
+                onClose={() => setShowTipoCertificadoModal(false)}
             />
         </div>
     )
